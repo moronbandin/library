@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NT Greek–Galician</title>
+
+  <title>NT — Greek · Galician</title>
 
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Serif&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
@@ -11,12 +12,11 @@
 
 <body>
 
-  <button id="menuToggle" class="menu-toggle">☰</button>
-
   <div class="layout">
 
+    <!-- SIDEBAR -->
     <aside class="sidebar" id="sidebar">
-      <div class="logo">NT</div>
+      <div class="logo">New Testament</div>
 
       <div class="selectors">
         <select id="bookSelect"></select>
@@ -24,26 +24,48 @@
       </div>
 
       <div class="controls">
-        <button id="themeToggle">◐</button>
-        <button id="modeParallel">≡</button>
-        <button id="modeGreek">GR</button>
-        <button id="modeGalician">GL</button>
-        <button id="shareBtn">⤴︎</button>
+        <button id="themeToggle" title="Toggle theme">Theme</button>
+        <button id="modeParallel" title="Parallel view">Parallel</button>
+        <button id="modeGreek" title="Greek only">Greek</button>
+        <button id="modeGalician" title="Galician only">Galician</button>
+        <button id="shareBtn" title="Copy link">Share</button>
       </div>
     </aside>
 
+    <!-- MAIN -->
     <main class="main">
-      <div class="chapter-header">
-        <h1 id="chapterTitle"></h1>
-      </div>
+      <div class="main-inner">
 
-      <div id="content" class="content"></div>
+        <header class="chapter-header">
+          <div class="chapter-nav">
+      
+            <button id="prevChapter" class="nav-btn" title="Previous chapter">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M15 18l-6-6 6-6"/>
+              </svg>
+            </button>
+      
+            <h1 id="chapterTitle"></h1>
+      
+            <button id="nextChapter" class="nav-btn" title="Next chapter">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 18l6-6-6-6"/>
+              </svg>
+            </button>
+      
+          </div>
+        </header>
+
+        <section id="content" class="content"></section>
+
+      </div>
     </main>
 
   </div>
 
+  <!-- COMMAND PALETTE -->
   <div id="palette" class="palette hidden">
-    <input id="paletteInput" type="text" placeholder="Ir a: mt 5 / rom 8 ..." />
+    <input id="paletteInput" type="text" placeholder="Ir a: mt 5 · rom 8 · lc 2 ..." />
   </div>
 
   <script src="app.js"></script>
