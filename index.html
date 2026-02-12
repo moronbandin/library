@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
   <title>NT — Greek · Galician</title>
 
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Serif&display=swap" rel="stylesheet">
@@ -24,35 +23,42 @@
       </div>
 
       <div class="controls">
-        <button id="themeToggle" title="Toggle theme">Theme</button>
-        <button id="modeParallel" title="Parallel view">Parallel</button>
-        <button id="modeGreek" title="Greek only">Greek</button>
-        <button id="modeGalician" title="Galician only">Galician</button>
-        <button id="shareBtn" title="Copy link">Share</button>
+        <button id="themeToggle">Theme</button>
+        <button id="modeParallel">Parallel</button>
+        <button id="modeGreek">Greek</button>
+        <button id="modeGalician">Galician</button>
+        <button id="shareBtn">Share</button>
       </div>
     </aside>
 
+    <!-- OVERLAY (mobile) -->
+    <div id="overlay" class="overlay"></div>
+
     <!-- MAIN -->
     <main class="main">
+
+      <!-- MOBILE MENU BUTTON -->
+      <button id="menuToggle" class="menu-toggle">☰</button>
+
       <div class="main-inner">
 
         <header class="chapter-header">
           <div class="chapter-nav">
-      
-            <button id="prevChapter" class="nav-btn" title="Previous chapter">
+
+            <button id="prevChapter" class="nav-btn">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M15 18l-6-6 6-6"/>
               </svg>
             </button>
-      
+
             <h1 id="chapterTitle"></h1>
-      
-            <button id="nextChapter" class="nav-btn" title="Next chapter">
+
+            <button id="nextChapter" class="nav-btn">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M9 18l6-6-6-6"/>
               </svg>
             </button>
-      
+
           </div>
         </header>
 

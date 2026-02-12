@@ -370,11 +370,19 @@ async function init() {
     state.chapter = "01";
     syncSelectors();
     loadChapter();
+
+    // Pechar sidebar en móbil
+    qs("sidebar").classList.remove("open");
+    qs("overlay").classList.remove("active");
   });
 
   chapterSelect.addEventListener("change", () => {
     state.chapter = chapterSelect.value;
     loadChapter();
+
+    // Pechar sidebar en móbil
+    qs("sidebar").classList.remove("open");
+    qs("overlay").classList.remove("active");
   });
 
   qs("modeParallel").onclick = () => setMode("parallel");
@@ -384,6 +392,22 @@ async function init() {
   qs("themeToggle").onclick = toggleTheme;
   qs("nextChapter").onclick = nextChapter;
   qs("prevChapter").onclick = prevChapter;
+
+  /* =============================
+     MOBILE MENU TOGGLE
+  ============================= */
+
+  qs("menuToggle").onclick = () => {
+    qs("sidebar").classList.toggle("open");
+    qs("overlay").classList.toggle("active");
+  };
+
+  qs("overlay").onclick = () => {
+    qs("sidebar").classList.remove("open");
+    qs("overlay").classList.remove("active");
+  };
+
+  /* ============================= */
 
   state.book = metadata.books[0].id;
   state.chapter = "01";
