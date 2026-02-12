@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="gl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NT Greek–Galician</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Serif&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+  <button id="menuToggle" class="menu-toggle">☰</button>
+
+  <div class="layout">
+
+    <aside class="sidebar" id="sidebar">
+      <div class="logo">NT</div>
+
+      <div class="selectors">
+        <select id="bookSelect"></select>
+        <select id="chapterSelect"></select>
+      </div>
+
+      <div class="controls">
+        <button id="themeToggle">◐</button>
+        <button id="modeParallel">≡</button>
+        <button id="modeGreek">GR</button>
+        <button id="modeGalician">GL</button>
+        <button id="shareBtn">⤴︎</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="chapter-header">
+        <h1 id="chapterTitle"></h1>
+      </div>
+
+      <div id="content" class="content"></div>
+    </main>
+
+  </div>
+
+  <div id="palette" class="palette hidden">
+    <input id="paletteInput" type="text" placeholder="Ir a: mt 5 / rom 8 ..." />
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

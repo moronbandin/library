@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+venv/
+venv*/
+nlp/venv311/
+.DS_Store

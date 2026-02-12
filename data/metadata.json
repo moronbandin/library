@@ -1,0 +1,31 @@
+{
+  "books": [
+    { "id": "mt", "name": "Mateo", "chapters": 28 },
+    { "id": "mc", "name": "Marcos", "chapters": 16 },
+    { "id": "lc", "name": "Lucas", "chapters": 24 },
+    { "id": "xn", "name": "Xoán", "chapters": 21 },
+    { "id": "act", "name": "Feitos", "chapters": 28 },
+    { "id": "rom", "name": "Romanos", "chapters": 16 },
+    { "id": "1co", "name": "1 Corintios", "chapters": 16 },
+    { "id": "2co", "name": "2 Corintios", "chapters": 13 },
+    { "id": "gal", "name": "Gálatas", "chapters": 6 },
+    { "id": "ef", "name": "Efesios", "chapters": 6 },
+    { "id": "flp", "name": "Filipenses", "chapters": 4 },
+    { "id": "col", "name": "Colosenses", "chapters": 4 },
+    { "id": "1ts", "name": "1 Tesalonicenses", "chapters": 5 },
+    { "id": "2ts", "name": "2 Tesalonicenses", "chapters": 3 },
+    { "id": "1tm", "name": "1 Timoteo", "chapters": 6 },
+    { "id": "2tm", "name": "2 Timoteo", "chapters": 4 },
+    { "id": "tit", "name": "Tito", "chapters": 3 },
+    { "id": "flm", "name": "Filemón", "chapters": 1 },
+    { "id": "heb", "name": "Hebreos", "chapters": 13 },
+    { "id": "stg", "name": "Santiago", "chapters": 5 },
+    { "id": "1pe", "name": "1 Pedro", "chapters": 5 },
+    { "id": "2pe", "name": "2 Pedro", "chapters": 3 },
+    { "id": "1xn", "name": "1 Xoán", "chapters": 5 },
+    { "id": "2xn", "name": "2 Xoán", "chapters": 1 },
+    { "id": "3xn", "name": "3 Xoán", "chapters": 1 },
+    { "id": "jud", "name": "Xudas", "chapters": 1 },
+    { "id": "ap", "name": "Apocalipse", "chapters": 22 }
+  ]
+}
