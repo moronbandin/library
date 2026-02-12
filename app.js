@@ -3,12 +3,14 @@ let metadata;
 const state = {
   book: null,
   chapter: null,
-  mode: "parallel"
+  mode: "greek"
 };
 
-let selectedVerse = null;
+let morphPopup = null;
 
-/* ---------------- UTIL ---------------- */
+/* =========================================================
+   UTIL
+========================================================= */
 
 function qs(id) {
   return document.getElementById(id);
@@ -27,20 +29,29 @@ function updateURL() {
   history.replaceState(null, "", "?" + params.toString());
 }
 
-function saveLastPosition() {
-  localStorage.setItem("nt-last", JSON.stringify({
-    book: state.book,
-    chapter: state.chapter
-  }));
+/* =========================================================
+   THEME
+========================================================= */
+
+function toggleTheme() {
+  document.documentElement.classList.toggle("dark");
+
+  if (document.documentElement.classList.contains("dark")) {
+    localStorage.setItem("theme", "dark");
+  } else {
+    localStorage.setItem("theme", "light");
+  }
 }
 
-function restoreLastPosition() {
-  const saved = localStorage.getItem("nt-last");
-  if (!saved) return null;
-  return JSON.parse(saved);
+function applySavedTheme() {
+  if (localStorage.getItem("theme") === "dark") {
+    document.documentElement.classList.add("dark");
+  }
 }
 
-/* ---------------- MODE ---------------- */
+/* =========================================================
+   MODE (parallel / greek / galician)
+========================================================= */
 
 function applyMode() {
   document.body.classList.remove("mode-greek", "mode-galician");
@@ -55,112 +66,9 @@ function setMode(mode) {
   updateURL();
 }
 
-/* ---------------- DATA ---------------- */
-
-async function loadMetadata() {
-  const res = await fetch("data/metadata.json");
-  return await res.json();
-}
-
-async function fetchJSON(path) {
-  try {
-    const res = await fetch(path);
-    if (!res.ok) return [];
-    return await res.json();
-  } catch {
-    return [];
-  }
-}
-
-/* ---------------- VERSE SELECTION ---------------- */
-
-function selectVerse(element, greek, galician) {
-
-  document.querySelectorAll(".verse").forEach(v =>
-    v.classList.remove("selected")
-  );
-
-  element.classList.add("selected");
-
-  selectedVerse = {
-    number: greek.v,
-    greek: greek.text,
-    galician: galician ? galician.text : ""
-  };
-}
-
-function clearSelection() {
-  document.querySelectorAll(".verse").forEach(v =>
-    v.classList.remove("selected")
-  );
-  selectedVerse = null;
-}
-
-/* ---------------- CHAPTER ---------------- */
-
-async function loadChapter() {
-
-  const content = qs("content");
-  const title = qs("chapterTitle");
-
-  content.style.opacity = 0;
-  clearSelection();
-
-  const bookObj = metadata.books.find(b => b.id === state.book);
-
-  const greek = await fetchJSON(`data/${state.book}/${state.chapter}.json`);
-  const galician = await fetchJSON(`trad/gl/${state.book}/${state.chapter}.json`);
-
-  content.innerHTML = "";
-  title.textContent = `${bookObj.name} ${parseInt(state.chapter)}`;
-
-  greek.forEach((v, i) => {
-
-    const verse = document.createElement("div");
-    verse.className = "verse";
-    verse.dataset.verse = v.v;
-
-    const left = document.createElement("div");
-    left.className = "gr";
-    left.innerHTML = `<span class="num">${v.v}</span>${v.text}`;
-
-    const right = document.createElement("div");
-    right.className = "gl";
-
-    if (galician[i]) {
-      right.innerHTML = `<span class="num">${galician[i].v}</span>${galician[i].text}`;
-    }
-
-    verse.appendChild(left);
-    verse.appendChild(right);
-    content.appendChild(verse);
-
-    verse.addEventListener("click", () => {
-      selectVerse(verse, v, galician[i]);
-    });
-  });
-
-  syncSelectors();
-  saveLastPosition();
-  updateURL();
-
-  window.scrollTo({ top: 0, behavior: "smooth" });
-
-  setTimeout(() => content.style.opacity = 1, 120);
-
-  /* --- HASH SUPPORT --- */
-
-  if (window.location.hash) {
-    const num = window.location.hash.replace("#v", "");
-    const target = document.querySelector(`[data-verse='${num}']`);
-    if (target) {
-      target.scrollIntoView({ behavior: "smooth", block: "center" });
-      target.classList.add("selected");
-    }
-  }
-}
-
-/* ---------------- NAVIGATION ---------------- */
+/* =========================================================
+   NAVIGATION
+========================================================= */
 
 function syncSelectors() {
   qs("bookSelect").value = state.book;
@@ -180,6 +88,7 @@ function nextChapter() {
     state.chapter = "01";
   }
 
+  syncSelectors();
   loadChapter();
 }
 
@@ -195,88 +104,239 @@ function prevChapter() {
     state.chapter = pad(prevBook.chapters);
   }
 
+  syncSelectors();
   loadChapter();
 }
 
-/* ---------------- SIDEBAR ---------------- */
+/* =========================================================
+   MORPH DECODER
+========================================================= */
 
-function toggleSidebar() {
-  qs("sidebar").classList.toggle("closed");
+function decodeMorph(morph, pos) {
+
+  if (!morph || morph === "--------") {
+    return "Forma invariable";
+  }
+
+  const mapCase = { N: "nominativo", G: "xenitivo", D: "dativo", A: "acusativo" };
+  const mapNumber = { S: "singular", P: "plural" };
+  const mapGender = { M: "masculino", F: "feminino", N: "neutro" };
+
+  const mapTense = {
+    P: "presente",
+    I: "imperfecto",
+    F: "futuro",
+    A: "aoristo",
+    X: "perfecto",
+    Y: "pluscuamperfecto"
+  };
+
+  const mapVoice = { A: "activa", M: "media", P: "pasiva" };
+
+  const mapMood = {
+    I: "indicativo",
+    D: "imperativo",
+    S: "subxuntivo",
+    O: "optativo",
+    N: "infinitivo",
+    P: "participio"
+  };
+
+  let result = [];
+
+  if (pos && pos.startsWith("V")) {
+    const tense = morph[1];
+    const voice = morph[2];
+    const mood = morph[3];
+
+    if (mapTense[tense]) result.push(mapTense[tense]);
+    if (mapVoice[voice]) result.push("voz " + mapVoice[voice]);
+    if (mapMood[mood]) result.push(mapMood[mood]);
+  }
+
+  const caseLetter = morph[4];
+  const number = morph[5];
+  const gender = morph[6];
+
+  if (mapCase[caseLetter]) result.push(mapCase[caseLetter]);
+  if (mapNumber[number]) result.push(mapNumber[number]);
+  if (mapGender[gender]) result.push(mapGender[gender]);
+
+  return result.join(", ");
 }
 
-/* ---------------- SHARE ---------------- */
+/* =========================================================
+   POS LABEL
+========================================================= */
 
-function openShareMenu(e) {
+function getPOSLabel(pos) {
 
-  const existing = document.querySelector(".share-menu");
-  if (existing) existing.remove();
+  if (!pos) return { label: "Descoñecido", class: "chip-other" };
 
-  const menu = document.createElement("div");
-  menu.className = "share-menu";
+  if (pos.startsWith("RA")) return { label: "Artigo", class: "chip-article" };
 
-  const rect = e.target.getBoundingClientRect();
-  menu.style.top = rect.bottom + 8 + "px";
-  menu.style.left = rect.left + "px";
+  if (pos.startsWith("RP") || pos.startsWith("RD") || pos.startsWith("RI") || pos.startsWith("RR"))
+    return { label: "Pronome", class: "chip-pron" };
 
-  const copyURL = document.createElement("button");
-  copyURL.textContent = "Copy link";
+  if (pos.startsWith("N")) return { label: "Substantivo", class: "chip-noun" };
+  if (pos.startsWith("V")) return { label: "Verbo", class: "chip-verb" };
+  if (pos.startsWith("A")) return { label: "Adxectivo", class: "chip-adj" };
+  if (pos.startsWith("P-")) return { label: "Preposición", class: "chip-prep" };
+  if (pos.startsWith("C-")) return { label: "Conxunción", class: "chip-conj" };
 
-  const copyText = document.createElement("button");
-  copyText.textContent = "Copy text";
+  return { label: pos, class: "chip-other" };
+}
 
-  menu.appendChild(copyURL);
-  menu.appendChild(copyText);
-  document.body.appendChild(menu);
+/* =========================================================
+   MORPH POPUP
+========================================================= */
 
-  copyURL.onclick = async () => {
+function showMorphPopup(span) {
 
-    let url = window.location.origin +
-      window.location.pathname +
-      `?book=${state.book}&chapter=${state.chapter}&mode=${state.mode}`;
+  removeMorphPopup();
 
-    if (selectedVerse) {
-      url += `#v${selectedVerse.number}`;
-    }
+  const posInfo = getPOSLabel(span.dataset.pos);
+  const analysis = decodeMorph(span.dataset.morph, span.dataset.pos);
 
-    try {
-      await navigator.clipboard.writeText(url);
-      showToast("Link copied");
-    } catch {
-      prompt("Copy this link:", url);
-    }
+  morphPopup = document.createElement("div");
+  morphPopup.className = "morph-popup";
 
-    menu.remove();
-  };
+  morphPopup.innerHTML = `
+    <div class="morph-form">${span.dataset.form}</div>
+    <div class="morph-chip ${posInfo.class}">${posInfo.label}</div>
+    <div class="morph-section">
+      <div class="morph-label">Lema</div>
+      <div class="morph-lemma">${span.dataset.lemma}</div>
+    </div>
+    <div class="morph-section">
+      <div class="morph-label">Análise</div>
+      <div>${analysis}</div>
+    </div>
+  `;
 
-  copyText.onclick = async () => {
+  document.body.appendChild(morphPopup);
 
-    let text;
+  const rect = span.getBoundingClientRect();
+  const popupWidth = 280;
 
-    if (selectedVerse) {
-      text =
-        `${state.book.toUpperCase()} ${parseInt(state.chapter)}:${selectedVerse.number}\n\n` +
-        selectedVerse.greek +
-        (selectedVerse.galician ? "\n\n" + selectedVerse.galician : "");
-    } else {
-      text = `${state.book.toUpperCase()} ${parseInt(state.chapter)}`;
-    }
+  let left = rect.left;
+  if (left + popupWidth > window.innerWidth - 20) {
+    left = window.innerWidth - popupWidth - 20;
+  }
 
-    try {
-      await navigator.clipboard.writeText(text);
-      showToast("Text copied");
-    } catch {
-      prompt("Copy this text:", text);
-    }
-
-    menu.remove();
-  };
+  morphPopup.style.top = rect.bottom + 10 + "px";
+  morphPopup.style.left = left + "px";
 
   setTimeout(() => {
-    document.addEventListener("click", () => menu.remove(), { once: true });
+    document.addEventListener("click", (e) => {
+      if (morphPopup && !morphPopup.contains(e.target)) {
+        removeMorphPopup();
+      }
+    }, { once: true });
   }, 10);
 }
 
-/* ---------------- INIT ---------------- */
+function removeMorphPopup() {
+  if (morphPopup) {
+    morphPopup.remove();
+    morphPopup = null;
+  }
+}
+
+/* =========================================================
+   DATA
+========================================================= */
+
+async function loadMetadata() {
+  const res = await fetch("data/metadata.json");
+  return await res.json();
+}
+
+async function fetchJSON(path) {
+  try {
+    const res = await fetch(path);
+    if (!res.ok) return [];
+    return await res.json();
+  } catch {
+    return [];
+  }
+}
+
+/* =========================================================
+   CHAPTER
+========================================================= */
+
+async function loadChapter() {
+
+  const content = qs("content");
+  const title = qs("chapterTitle");
+
+  content.innerHTML = "";
+  removeMorphPopup();
+
+  const bookObj = metadata.books.find(b => b.id === state.book);
+
+  const greek = await fetchJSON(`data/${state.book}/${state.chapter}.json`);
+  const galician = await fetchJSON(`trad/gl/${state.book}/${state.chapter}.json`);
+
+  title.textContent = `${bookObj.name} ${parseInt(state.chapter)}`;
+
+  greek.forEach((v, i) => {
+
+    const verse = document.createElement("div");
+    verse.className = "verse";
+
+    const left = document.createElement("div");
+    left.className = "gr";
+
+    const num = document.createElement("span");
+    num.className = "num";
+    num.textContent = v.v;
+    left.appendChild(num);
+    left.appendChild(document.createTextNode(" "));
+
+    if (v.tokens) {
+      v.tokens.forEach(token => {
+        const span = document.createElement("span");
+        span.className = "token";
+        span.textContent = token.form + " ";
+
+        span.dataset.form = token.form;
+        span.dataset.lemma = token.lemma;
+        span.dataset.morph = token.morph;
+        span.dataset.pos = token.pos;
+
+        span.addEventListener("click", (e) => {
+          e.stopPropagation();
+          showMorphPopup(span);
+        });
+
+        left.appendChild(span);
+      });
+    } else {
+      left.appendChild(document.createTextNode(v.text));
+    }
+
+    const right = document.createElement("div");
+    right.className = "gl";
+
+    if (galician[i]) {
+      right.innerHTML =
+        `<span class="num">${galician[i].v}</span> ${galician[i].text}`;
+    }
+
+    verse.appendChild(left);
+    verse.appendChild(right);
+    content.appendChild(verse);
+  });
+
+  updateURL();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+/* =========================================================
+   INIT
+========================================================= */
 
 let populateChapters;
 
@@ -308,6 +368,7 @@ async function init() {
   bookSelect.addEventListener("change", () => {
     state.book = bookSelect.value;
     state.chapter = "01";
+    syncSelectors();
     loadChapter();
   });
 
@@ -320,66 +381,17 @@ async function init() {
   qs("modeGreek").onclick = () => setMode("greek");
   qs("modeGalician").onclick = () => setMode("galician");
 
+  qs("themeToggle").onclick = toggleTheme;
   qs("nextChapter").onclick = nextChapter;
   qs("prevChapter").onclick = prevChapter;
 
-  qs("themeToggle").onclick = () => {
-    document.body.classList.toggle("dark");
-    localStorage.setItem(
-      "nt-theme",
-      document.body.classList.contains("dark") ? "dark" : "light"
-    );
-  };
+  state.book = metadata.books[0].id;
+  state.chapter = "01";
 
-  qs("shareBtn").onclick = openShareMenu;
-
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "ArrowRight") nextChapter();
-    if (e.key === "ArrowLeft") prevChapter();
-  });
-
-  const params = new URLSearchParams(window.location.search);
-
-  state.book = params.get("book");
-  state.chapter = params.get("chapter");
-  state.mode = params.get("mode") || "parallel";
-
-  if (!state.book || !state.chapter) {
-    const saved = restoreLastPosition();
-    if (saved) {
-      state.book = saved.book;
-      state.chapter = saved.chapter;
-    } else {
-      state.book = metadata.books[0].id;
-      state.chapter = "01";
-    }
-  }
-
-  if (localStorage.getItem("nt-theme") === "dark") {
-    document.body.classList.add("dark");
-  }
-
+  applySavedTheme();
   applyMode();
   populateChapters(state.book);
   loadChapter();
-}
-
-/* ---------------- TOAST ---------------- */
-
-function showToast(text) {
-
-  const toast = document.createElement("div");
-  toast.className = "toast";
-  toast.textContent = text;
-
-  document.body.appendChild(toast);
-
-  setTimeout(() => toast.classList.add("show"), 50);
-
-  setTimeout(() => {
-    toast.classList.remove("show");
-    setTimeout(() => toast.remove(), 300);
-  }, 1600);
 }
 
 init();
